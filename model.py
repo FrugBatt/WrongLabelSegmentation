@@ -9,10 +9,10 @@ from ultralytics import YOLO
 
 class SegmentationModel(nn.Module) :
 
-    def __init__(self):
+    def __init__(self, yolo_path):
         super(SegmentationModel, self).__init__()
 
-        self.yolo_model = YOLODetectModel()
+        self.yolo_model = YOLODetectModel(yolo_path=yolo_path)
         self.sam_model = self.load_sam() # Load the SAM model here
         self.coherence_model = nn.Linear(1, self.sam_model.sam_prompt_emb_dim)
 

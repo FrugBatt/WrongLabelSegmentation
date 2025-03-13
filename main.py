@@ -17,22 +17,7 @@ args = parser.parse_args()
 dataset = RaidiumDataset(train=not args.test)
 dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
 
-model = SegmentationModel(hugging_face = args.model is None)
+model = SegmentationModel(args.model)
 
-if args.test :
-    output = model(dataset.images)
-    save_predictions(output, args.output)
-    exit()
-
-# Training loop
-criterion = DiceLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-
-for epoch in range(args.epochs):
-    for i, (images, labels) in enumerate(dataloader):
-        optimizer.zero_grad()
-        outputs = model(images)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
-        print(f'Epoch {epoch}, Iteration {i}, Loss {loss.item()}')
+output = model(dataset.images)
+save_predictions(output, args.output)

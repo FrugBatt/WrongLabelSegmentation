@@ -6,13 +6,14 @@ import pandas as pd
 from tqdm import tqdm
 from einops import rearrange
 import shutil
-from utils import alphanum_sort, imask_to_bmask, mask_to_yolo_annotation
+from utils import alphanum_sort, imask_to_bmask, mask_to_yolo_annotation, bmask_to_imask
 from torchvision.ops import masks_to_boxes
 
 train_labels = 'data/label_Hnl61pT.csv'
 
 def save_predictions(predictions, path = 'predictions.csv') :
-    pred_np = predictions.detach().numpy()
+    ipred = bmask_to_imask(predictions)
+    pred_np = ipred.detach().numpy()
     pd.DataFrame(pred_np).T.to_csv(path)
     print(f'Predictions saved to {path}')
 
