@@ -136,3 +136,14 @@ class RaidiumDataset(torch.utils.data.Dataset):
             return self.images[idx], imask_to_bmask(self.labels[idx])
 
         return self.images[idx]
+
+def collate_fn(batch):
+    if batch == []:
+        return []
+    if len(batch[0]) == 2:
+        images, labels = zip(*batch)
+        images = torch.stack(images)
+        labels = list(labels) # lists of binary mask or list of bounding boxes
+        return images, labels
+
+    return torch.stack(batch) # images
