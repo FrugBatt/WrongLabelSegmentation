@@ -24,8 +24,8 @@ class DiceLoss():
         assert (H1, W1) == (H2, W2), "Input segmentation maps must have the same spatial dimensions."
         
         # Reshape to (C, -1) for easier computation
-        seg1_flat = seg1.view(C1, -1).int()  # Shape: (C1, H*W)
-        seg2_flat = seg2.view(C2, -1).int()  # Shape: (C2, H*W)
+        seg1_flat = seg1.view(C1, -1).float()  # Shape: (C1, H*W)
+        seg2_flat = seg2.view(C2, -1).float()  # Shape: (C2, H*W)
         
         # Compute intersection and union for all channel pairings (C1, C2)
         intersection = torch.matmul(seg1_flat, seg2_flat.T)  # Shape: (C1, C2)
@@ -34,7 +34,7 @@ class DiceLoss():
         dice_scores = (2.0 * intersection + epsilon) / (union + epsilon)  # Dice coefficient (C1, C2)
         
         # Find best matching for each channel
-        best_dice_scores, _ = dice_scores.max(dim=1)  # Max over C2 for each C1
+        best_dice_scores, _ = dice_scores.max(dim=1)  # shape : (C1,)
         
         # Compute Dice loss
         dice_loss = 1.0 - best_dice_scores.mean()  # Average over all channels in seg1

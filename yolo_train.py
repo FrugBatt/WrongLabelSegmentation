@@ -23,4 +23,6 @@ model.yolo_model.train(
     epochs=args.epochs,
     imgsz=256,
     device=args.device,
+    lr0=0.0002,
+    optimizer='adamw',
 )

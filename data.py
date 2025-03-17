@@ -37,6 +37,18 @@ class RaidiumDataset(torch.utils.data.Dataset):
     def is_valid_file(self, file):
         return file.endswith('.png')
 
+    def validation_set(self):
+        self.data_files = self.data_files[:len(self.data_files) // 10]
+        self.images = self.images[:len(self.images) // 10]
+        self.labels = self.labels[:len(self.labels) // 10]
+        print('Validation set created')
+    
+    def train_set(self):
+        self.data_files = self.data_files[len(self.data_files) // 10:]
+        self.images = self.images[len(self.images) // 10:]
+        self.labels = self.labels[len(self.labels) // 10:]
+        print('Train set created')
+
     def load_data(self):
         imgs = torch.empty((len(self.data_files), 1 if not self.keep_rgb else 3, self.data_width, self.data_height)) # Grayscale images
 

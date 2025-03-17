@@ -29,14 +29,14 @@ class NoCoherenceModel(CoherenceModel) :
 
 class YOLODetectCoherenceModel(CoherenceModel) :
 
-    def __init__(self):
+    def __init__(self, yolo_path):
         super(YOLODetectCoherenceModel, self).__init__(1)
 
-        self.yolo_model = YOLODetectModel()
+        self.yolo_model = YOLODetectModel(yolo_path=yolo_path)
 
     def __call__(self, img, seg_map):
-        probs, _ = self.yolo_model(img)
-        
+        probs, _ = self.yolo_model(img.unsqueeze(0))
+
         n_yolo = torch.tensor([p.shape[0] for p in probs])
         n_seg = torch.tensor([s.shape[0] for s in seg_map])
 
