@@ -25,7 +25,7 @@ class NoCoherenceModel(CoherenceModel) :
         super(NoCoherenceModel, self).__init__(1)
 
     def __call__(self, x, _):
-        return torch.ones((x.shape[0], 1))
+        return torch.ones((1))
 
 class YOLODetectCoherenceModel(CoherenceModel) :
 
@@ -119,5 +119,5 @@ class WatershedCoherenceModel(CoherenceModel) :
     def __call__(self, img, seg_map):
         w_bmask = self.watershed_feature_segmentation(img)
 
-        dice = self.dice(w_bmask, seg_map)
-        return dice
+        dice = self.dice(w_bmask, seg_map[0])
+        return dice.unsqueeze(0)

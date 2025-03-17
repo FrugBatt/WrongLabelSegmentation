@@ -1,7 +1,7 @@
 import torch
 from data import RaidiumDataset, collate_fn
 from model import SegmentationModel
-from coherence import YOLODetectCoherenceModel
+from coherence import YOLODetectCoherenceModel, WatershedCoherenceModel, NoCoherenceModel
 from criterion import DiceLoss
 
 import argparse
@@ -16,6 +16,7 @@ parser.add_argument('--batch_size', type=int, default=1, help='batch size')
 parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu', help='device')
 parser.add_argument('--yolo_weights', type=str, default='yolo11x.pt', help='weights')
 parser.add_argument('--output', type=str, default='sam_weights.pt', help='output')
+parser.add_argument('--coherence', type=str, default='watershed', help='coherence model')
 
 args = parser.parse_args()
 
@@ -33,7 +34,13 @@ val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=args.batch_
 model = SegmentationModel(args.yolo_weights)
 model.to(args.device)
 
-coherence = YOLODetectCoherenceModel(args.yolo_weights)
+if args.coherence == 'yolo':
+    coherence = YOLODetectCoherenceModel()
+    coherence.yolo_model.to(args.device)
+elif args.coherence == 'watershed':
+    coherence = WatershedCoherenceModel()
+else:
+    coherence = NoCoherenceModel()
 #coherence.to(args.device)
 
 model.sam_model.model.sam_mask_decoder.train(True)
@@ -50,7 +57,7 @@ for epoch in range(args.epochs):
     c_loss = 0
     for i, (images, labels) in enumerate(train_dataloader):
         coherence_score = coherence(images[0], labels)
-
+        #print(coherence_score)
         optimizer.zero_grad()
         outputs = model(images[0], coherence=coherence_score, return_logits=True)
         outputs_sg = torch.sigmoid(outputs)
