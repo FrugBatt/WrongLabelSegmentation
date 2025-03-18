@@ -1,11 +1,15 @@
 import torch
+import numpy as np
+
+
+NUM_CLASSES = 53
 
 class DiceLoss():
 
     def __init__(self, smooth = 1e-5):
         self.smooth = smooth
 
-    def __call__(self, seg1: torch.Tensor, seg2: torch.Tensor, epsilon: float = 1e-6) -> torch.Tensor:
+    def old_call(self, seg1: torch.Tensor, seg2: torch.Tensor, epsilon: float = 1e-6) -> torch.Tensor:
         """
         Compute the Dice loss between two binary segmentation maps.
         The segmentation maps have shape (C, H, W), and the i-th map in seg1
@@ -40,3 +44,20 @@ class DiceLoss():
         dice_loss = 1.0 - best_dice_scores.mean()  # Average over all channels in seg1
         
         return dice_loss
+    
+
+    def dice_image(self, prediction, ground_truth):
+        intersection = np.sum(prediction * ground_truth)
+        if np.sum(prediction) == 0 and np.sum(ground_truth) == 0:
+            return np.nan
+        return 2 * intersection / (np.sum(prediction) + np.sum(ground_truth))
+
+
+    def dice_multiclass(self, prediction, ground_truth):
+        dices = []
+        for i in range(1, NUM_CLASSES + 1): # skip background
+            dices.append(self.dice_image(prediction == i, ground_truth == i))
+        return np.array(dices)
+
+    def __call__(self, seg1, seg2) :
+        return torch.tensor(self.dice_multiclass(seg1.numpy(), seg2.numpy()))
