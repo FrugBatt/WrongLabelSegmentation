@@ -14,6 +14,7 @@ args = parser.parse_args()
 
 dataset = RaidiumDataset(train=True, keep_rgb=True, bounding_boxes=True)
 dataset.only_labeled()
+dataset.only_coherent_label()
 dataset.save_yolo_format('data/yolo_boxes')
 
 model = YOLODetectModel(args.weights)

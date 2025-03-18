@@ -11,15 +11,18 @@ def alphanum_sort(l) :
     alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ]
     return sorted(l, key = alphanum_key)
 
-def imask_to_bmask(imask, dtype = torch.bool) :
+def imask_to_bmask(imask, annotated_labels = None, dtype = torch.bool) :
     """
     Converts an int mask to a binary mask
     imask : (W, H) tensor
     """
-    cl = imask.unique()[1:] # We exclude the background class
-    bmask = torch.zeros((cl.shape[0], *imask.shape), dtype = dtype)
-    for i,c in enumerate(cl) :
-        bmask[i] = imask == c
+    #cl = imask.unique()[1:] # We exclude the background class
+    cl = imask.max()
+    bmask = torch.zeros((cl, *imask.shape), dtype = dtype)
+    for i in range(cl) :
+        if annotated_labels is not None and i not in annotated_labels :
+            continue
+        bmask[i] = imask == (i+1)
     return bmask
 
 def bmask_to_imask(bmask) :
