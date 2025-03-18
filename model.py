@@ -33,7 +33,7 @@ class SegmentationModel(nn.Module) :
         return predictor
 
     def forward(self, imgs, coherence = None, return_logits=False):
-        _, boxes = self.yolo_model(imgs.unsqueeze(0))
+        labels, boxes = self.yolo_model(imgs.unsqueeze(0))
 
         #img = self.preprocess(img)
         if coherence is None :
@@ -60,7 +60,7 @@ class SegmentationModel(nn.Module) :
 
         img = np.array(rearrange(imgs, 'c h w -> h w c'))
         self.sam_model.set_image(img)
-        masks, _, _ = self.sam_model.predict(box=boxes[0], coherence_emb=c_emb, multimask_output=False, return_logits=return_logits)
+        dense_masks, _, _ = self.sam_model.predict(box=boxes[0], coherence_emb=c_emb, multimask_output=False, return_logits=return_logits)
         #print(boxes[0])
         #print(self.sam_model._prep_prompts(None, None, boxes[0], None, True))
         #mask_input, unnorm_coords, labels, unnorm_box = self.sam_model._prep_prompts(None, None, boxes[0], None, True)
@@ -75,7 +75,10 @@ class SegmentationModel(nn.Module) :
         #print(masks, masks.requires_grad)
         #masks = [torch.tensor(mask).squeeze() for mask in masks]
         #print(masks.shape)
-        return masks
+        sparse_masks = torch.zeros((53, 256, 256), dtype=torch.bool)
+        for i,l in enumerate(labels[0]):
+            sparse_masks[l] = dense_masks[i]
+        return sparse_masks
 
 class YOLODetectModel(nn.Module) :
 
@@ -88,6 +91,6 @@ class YOLODetectModel(nn.Module) :
         output = self.yolo_model.predict(source=img, verbose=False)
 
         boxes = [o.boxes.data[:,0:4] for o in output]
-        probs = [o.boxes.conf for o in output]
+        labels = [o.boxes.data[:,4] for o in output]
 
-        return probs, boxes
+        return labels, boxes
